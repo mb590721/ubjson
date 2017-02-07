@@ -10,8 +10,15 @@ public class UBWriter implements Closeable {
 
     private final OutputStream mOutputStream;
 
+    private boolean writeUnoptimizedArrays = false; 
+
     public UBWriter(OutputStream out) {
         mOutputStream = out;
+    }
+    
+    public UBWriter(OutputStream out, boolean writeUnoptimizedArrays) {
+        mOutputStream = out;
+        this.writeUnoptimizedArrays = writeUnoptimizedArrays;
     }
 
     @Override
@@ -128,6 +135,15 @@ public class UBWriter implements Closeable {
 
     public void writeInt8Array(byte[] value) throws IOException {
         mOutputStream.write(UBValue.MARKER_ARRAY_START);
+
+        if(writeUnoptimizedArrays){
+            for(byte b : value){
+                writeInt8(b);
+            }
+            mOutputStream.write(UBValue.MARKER_ARRAY_END);
+            return;
+        }
+
         mOutputStream.write(UBValue.MARKER_OPTIMIZED_TYPE);
         mOutputStream.write(UBValue.MARKER_INT8);
         mOutputStream.write(UBValue.MARKER_OPTIMIZED_SIZE);
@@ -140,6 +156,15 @@ public class UBWriter implements Closeable {
 
     public void writeInt16Array(short[] value) throws IOException {
         mOutputStream.write(UBValue.MARKER_ARRAY_START);
+
+        if(writeUnoptimizedArrays){
+            for(short s : value){
+                writeInt16(s);
+            }
+            mOutputStream.write(UBValue.MARKER_ARRAY_END);
+            return;
+        }
+
         mOutputStream.write(UBValue.MARKER_OPTIMIZED_TYPE);
         mOutputStream.write(UBValue.MARKER_INT16);
         mOutputStream.write(UBValue.MARKER_OPTIMIZED_SIZE);
@@ -152,6 +177,15 @@ public class UBWriter implements Closeable {
 
     public void writeInt32Array(int[] value) throws IOException {
         mOutputStream.write(UBValue.MARKER_ARRAY_START);
+
+        if(writeUnoptimizedArrays){
+            for(int i : value){
+                writeInt32(i);
+            }
+            mOutputStream.write(UBValue.MARKER_ARRAY_END);
+            return;
+        }
+
         mOutputStream.write(UBValue.MARKER_OPTIMIZED_TYPE);
         mOutputStream.write(UBValue.MARKER_INT32);
         mOutputStream.write(UBValue.MARKER_OPTIMIZED_SIZE);
@@ -164,6 +198,15 @@ public class UBWriter implements Closeable {
 
     public void writeInt64Array(long[] value) throws IOException {
         mOutputStream.write(UBValue.MARKER_ARRAY_START);
+
+        if(writeUnoptimizedArrays){
+            for(long l : value){
+                writeInt64(l);
+            }
+            mOutputStream.write(UBValue.MARKER_ARRAY_END);
+            return;
+        }
+
         mOutputStream.write(UBValue.MARKER_OPTIMIZED_TYPE);
         mOutputStream.write(UBValue.MARKER_INT64);
         mOutputStream.write(UBValue.MARKER_OPTIMIZED_SIZE);
@@ -176,6 +219,15 @@ public class UBWriter implements Closeable {
 
     public void writeFloat32Array(float[] value) throws IOException {
         mOutputStream.write(UBValue.MARKER_ARRAY_START);
+
+        if(writeUnoptimizedArrays){
+            for(float f : value){
+                writeFloat32(f);
+            }
+            mOutputStream.write(UBValue.MARKER_ARRAY_END);
+            return;
+        }
+
         mOutputStream.write(UBValue.MARKER_OPTIMIZED_TYPE);
         mOutputStream.write(UBValue.MARKER_FLOAT32);
         mOutputStream.write(UBValue.MARKER_OPTIMIZED_SIZE);
@@ -188,6 +240,15 @@ public class UBWriter implements Closeable {
 
     public void writeFloat64Array(double[] value) throws IOException {
         mOutputStream.write(UBValue.MARKER_ARRAY_START);
+
+        if(writeUnoptimizedArrays){
+            for(double d : value){
+                writeFloat64(d);
+            }
+            mOutputStream.write(UBValue.MARKER_ARRAY_END);
+            return;
+        }
+
         mOutputStream.write(UBValue.MARKER_OPTIMIZED_TYPE);
         mOutputStream.write(UBValue.MARKER_FLOAT64);
         mOutputStream.write(UBValue.MARKER_OPTIMIZED_SIZE);
@@ -200,6 +261,18 @@ public class UBWriter implements Closeable {
 
     public void writeStringArray(String[] value) throws IOException {
         mOutputStream.write(UBValue.MARKER_ARRAY_START);
+
+        if(writeUnoptimizedArrays){
+            for(String s : value){
+                if(s == null){
+                    throw new IOException("cannot serialize null string in strongly-typed array");
+                }
+                writeDataArray(s.getBytes(UBString.UTF_8));
+            }
+            mOutputStream.write(UBValue.MARKER_ARRAY_END);
+            return;
+        }
+
         mOutputStream.write(UBValue.MARKER_OPTIMIZED_TYPE);
         mOutputStream.write(UBValue.MARKER_STRING);
         mOutputStream.write(UBValue.MARKER_OPTIMIZED_SIZE);
@@ -216,11 +289,20 @@ public class UBWriter implements Closeable {
 
     public void writeGenericeArray(UBArray value) throws IOException {
         mOutputStream.write(UBValue.MARKER_ARRAY_START);
+
+        if(writeUnoptimizedArrays){
+        	
+        	for(int i=0;i<value.size();i++){
+                write(value.get(i));
+            };
+            mOutputStream.write(UBValue.MARKER_ARRAY_END);
+            return;
+        }
+
         mOutputStream.write(UBValue.MARKER_OPTIMIZED_SIZE);
 
         final int size = value.size();
         writeInt(size);
-
         for(int i=0;i<size;i++){
             write(value.get(i));
         }

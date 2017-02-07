@@ -224,6 +224,36 @@ public class UBWriterTest {
 
         assertEquals(15, array.length);
     }
+    
+    @Test
+    public void testWriteUnoptimizedArray() throws Exception {
+    	boolean flagToWriteUnoptimizedArrays = true;
+        ByteArrayOutputStream out;
+        UBWriter writer;
+        byte[] array;
+
+        out = new ByteArrayOutputStream();
+        writer = new UBWriter(out, flagToWriteUnoptimizedArrays);
+        writer.write(UBValueFactory.createArray(new String[]{"a", "b", "c"}));
+        array = out.toByteArray();
+
+        assertEquals('[', array[0]);
+
+        assertEquals('U', array[1]);
+        assertEquals(0x1, array[2]);
+        assertEquals('a', array[3]);
+
+        assertEquals('U', array[4]);
+        assertEquals(0x1, array[5]);
+        assertEquals('b', array[6]);
+
+        assertEquals('U', array[7]);
+        assertEquals(0x1, array[8]);
+        assertEquals('c', array[9]);
+        assertEquals(']', array[10]);
+
+        assertEquals(11, array.length);
+    }
 
 
 }
